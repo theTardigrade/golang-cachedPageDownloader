@@ -18,7 +18,7 @@ func main() {
 	downloader, err := cachedPageDownloader.NewDownloader(&cachedPageDownloader.Options{
 		CacheDir:               "./cache",
 		ShouldKeepCacheOnClose: true,
-		MaxCacheDuration:       time.Second * 10,
+		MaxCacheDuration:       time.Minute * 5,
 	})
 	if err != nil {
 		panic(err)
