@@ -14,6 +14,10 @@ import (
 	cachedPageDownloader "github.com/theTardigrade/golang-cachedPageDownloader"
 )
 
+const (
+	exampleURL = "https://google.com/"
+)
+
 func main() {
 	downloader, err := cachedPageDownloader.NewDownloader(&cachedPageDownloader.Options{
 		CacheDir:               "./cache",
@@ -24,8 +28,6 @@ func main() {
 		panic(err)
 	}
 	defer downloader.Close()
-
-	const exampleURL = "https://golangprojectstructure.com/"
 
 	// calling the function below will retrieve the content of the webpage from the internet
 	content, isFromCache, err := downloader.Download(exampleURL)
