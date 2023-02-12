@@ -144,6 +144,11 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 		}
 		defer resp.Body.Close()
 
+		if resp.StatusCode != http.StatusOK {
+			err = ErrStatusCodeNotOK
+			return
+		}
+
 		if content, err = io.ReadAll(resp.Body); err != nil {
 			return
 		}
