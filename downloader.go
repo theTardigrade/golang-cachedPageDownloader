@@ -87,6 +87,14 @@ func (downloader *Downloader) CacheDir() string {
 	return downloader.options.CacheDir
 }
 
+func (downloader *Downloader) MaxCacheDuration() time.Duration {
+	return downloader.options.MaxCacheDuration
+}
+
+func (downloader *Downloader) SetMaxCacheDuration(duration time.Duration) {
+	downloader.options.MaxCacheDuration = duration
+}
+
 func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCache bool, err error) {
 	options := downloader.options
 
