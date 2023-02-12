@@ -25,9 +25,9 @@ func main() {
 	}
 	defer downloader.Close()
 
-	const exampleURL = "https://google.com/"
+	const exampleURL = "https://golangprojectstructure.com/"
 
-	// calling the function below retrieves the content of the webpage from the internet
+	// calling the function below will retrieve the content of the webpage from the internet
 	content, isFromCache, err := downloader.Download(exampleURL)
 	if err != nil {
 		panic(err)
@@ -38,7 +38,7 @@ func main() {
 
 	fmt.Println("*****")
 
-	// calling the function below retrieves the content of the webpage from our cache
+	// calling the function again will retrieve the content of the webpage from our cache
 	content, isFromCache, err = downloader.Download(exampleURL)
 	if err != nil {
 		panic(err)
