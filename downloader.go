@@ -99,8 +99,8 @@ func (downloader *Downloader) MaxCacheDuration() time.Duration {
 	return downloader.options.MaxCacheDuration
 }
 
-func (downloader *Downloader) SetMaxCacheDuration(duration time.Duration) {
-	downloader.options.MaxCacheDuration = duration
+func (downloader *Downloader) ShouldKeepCacheOnClose() bool {
+	return downloader.options.ShouldKeepCacheOnClose
 }
 
 func (downloader *Downloader) Clean() (err error) {
