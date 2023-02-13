@@ -3,7 +3,6 @@ package cachedPageDownloader
 import (
 	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -112,8 +111,6 @@ func (downloader *Downloader) Clean() (err error) {
 
 	for _, filePath := range cacheDirContents {
 		var fileInfo fs.FileInfo
-
-		fmt.Println(filePath)
 
 		if fileInfo, err = os.Stat(filePath); err != nil {
 			if !os.IsNotExist(err) {
