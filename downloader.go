@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/theTardigrade/golang-cachedPageDownloader/internal/mutex"
 	hash "github.com/theTardigrade/golang-hash"
 )
 
@@ -142,11 +143,37 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 	fileName := fileHash + fileExt
 	filePath := filepath.Join(options.CacheDir, fileName)
 
+	currentMutex := mutex.Get(rawURL)
+
+	defer currentMutex.Unlock()
+	currentMutex.Lock()
+
+	content, isFromCache, err = downloader.readFromCache(filePath)
+	if err != nil || isFromCache {
+		return
+	}
+
+	content, err = downloader.downloadFromInternet(rawURL)
+	if err != nil {
+		return
+	}
+
+	err = downloader.writeToCache(filePath, content)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (downloader *Downloader) readFromCache(filePath string) (content []byte, found bool, err error) {
+	options := downloader.options
+
 	var fileInfo fs.FileInfo
 
 	if fileInfo, err = os.Stat(filePath); err != nil {
-		if !os.IsNotExist(err) {
-			return
+		if os.IsNotExist(err) {
+			err = nil
 		}
 	} else if options.MaxCacheDuration == 0 || time.Since(fileInfo.ModTime()) <= options.MaxCacheDuration {
 		content, err = os.ReadFile(filePath)
@@ -166,45 +193,55 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 			return
 		}
 
-		isFromCache = true
+		found = true
 	}
 
-	if !isFromCache {
-		var resp *http.Response
+	return
+}
 
-		if resp, err = http.Get(rawURL); err != nil {
-			return
-		}
-		defer resp.Body.Close()
+func (downloader *Downloader) downloadFromInternet(rawURL string) (content []byte, err error) {
+	var resp *http.Response
 
-		if resp.StatusCode != http.StatusOK {
-			err = ErrStatusCodeNotOK
-			return
-		}
+	if resp, err = http.Get(rawURL); err != nil {
+		return
+	}
+	defer resp.Body.Close()
 
-		if content, err = io.ReadAll(resp.Body); err != nil {
-			return
-		}
+	if resp.StatusCode != http.StatusOK {
+		err = ErrStatusCodeNotOK
+		return
+	}
 
-		var file *os.File
+	if content, err = io.ReadAll(resp.Body); err != nil {
+		return
+	}
 
-		if file, err = os.Create(filePath); err != nil {
-			return
-		}
+	return
+}
 
-		var fileWriter *gzip.Writer
+func (downloader *Downloader) writeToCache(filePath string, content []byte) (err error) {
+	var file *os.File
 
-		if fileWriter, err = gzip.NewWriterLevel(file, gzip.BestCompression); err != nil {
-			return
-		}
+	if file, err = os.Create(filePath); err != nil {
+		return
+	}
 
-		if _, err = fileWriter.Write(content); err != nil {
-			return
-		}
+	var fileWriter *gzip.Writer
 
-		if err = fileWriter.Close(); err != nil {
-			return
-		}
+	if fileWriter, err = gzip.NewWriterLevel(file, gzip.BestCompression); err != nil {
+		return
+	}
+
+	if _, err = fileWriter.Write(content); err != nil {
+		return
+	}
+
+	if err = fileWriter.Close(); err != nil {
+		return
+	}
+
+	if err = file.Close(); err != nil {
+		return
 	}
 
 	return
