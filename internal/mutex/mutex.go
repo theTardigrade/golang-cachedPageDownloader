@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	count = 1 << 16
+	count = 1 << 22
 )
 
 var (
