@@ -233,27 +233,19 @@ func (downloader *Downloader) downloadFromInternet(rawURL string) (content []byt
 }
 
 func (downloader *Downloader) writeToCache(filePath string, content []byte) (err error) {
-	var file *os.File
-
-	if file, err = os.Create(filePath); err != nil {
+	file, err := os.Create(filePath)
+	if err != nil {
 		return
 	}
+	defer file.Close()
 
-	var fileWriter *gzip.Writer
-
-	if fileWriter, err = gzip.NewWriterLevel(file, gzip.BestCompression); err != nil {
+	fileWriter, err := gzip.NewWriterLevel(file, gzip.BestCompression)
+	if err != nil {
 		return
 	}
+	defer fileWriter.Close()
 
 	if _, err = fileWriter.Write(content); err != nil {
-		return
-	}
-
-	if err = fileWriter.Close(); err != nil {
-		return
-	}
-
-	if err = file.Close(); err != nil {
 		return
 	}
 
