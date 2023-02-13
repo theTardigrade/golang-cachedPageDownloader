@@ -1,6 +1,6 @@
 # golang-cachedPageDownloader
 
-This package makes it easy to download &mdash; or access a previously cached version of &mdash; webpages.
+This package makes it easy to download &mdash; or access previously cached versions of &mdash; webpages.
 
 ## Example
 
