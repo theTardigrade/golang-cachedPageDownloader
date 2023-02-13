@@ -182,40 +182,43 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 func (downloader *Downloader) readFromCache(filePath string) (content []byte, found bool, err error) {
 	options := downloader.options
 
-	var fileInfo fs.FileInfo
-
-	if fileInfo, err = os.Stat(filePath); err != nil {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
 		if os.IsNotExist(err) {
 			err = nil
 		}
-	} else if options.MaxCacheDuration == 0 || time.Since(fileInfo.ModTime()) <= options.MaxCacheDuration {
-		content, err = os.ReadFile(filePath)
-		if err != nil {
-			return
-		}
 
-		contentReader := bytes.NewReader(content)
-
-		var contentGzipReader *gzip.Reader
-
-		if contentGzipReader, err = gzip.NewReader(contentReader); err != nil {
-			return
-		}
-
-		if content, err = io.ReadAll(contentGzipReader); err != nil {
-			return
-		}
-
-		found = true
+		return
 	}
+
+	if options.MaxCacheDuration != 0 && time.Since(fileInfo.ModTime()) > options.MaxCacheDuration {
+		return
+	}
+
+	if content, err = os.ReadFile(filePath); err != nil {
+		return
+	}
+
+	contentReader := bytes.NewReader(content)
+
+	contentGzipReader, err := gzip.NewReader(contentReader)
+	if err != nil {
+		return
+	}
+	defer contentGzipReader.Close()
+
+	if content, err = io.ReadAll(contentGzipReader); err != nil {
+		return
+	}
+
+	found = true
 
 	return
 }
 
 func (downloader *Downloader) downloadFromInternet(rawURL string) (content []byte, err error) {
-	var resp *http.Response
-
-	if resp, err = http.Get(rawURL); err != nil {
+	resp, err := http.Get(rawURL)
+	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
