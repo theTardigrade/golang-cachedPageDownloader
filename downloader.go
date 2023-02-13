@@ -3,6 +3,7 @@ package cachedPageDownloader
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -93,6 +94,39 @@ func (downloader *Downloader) MaxCacheDuration() time.Duration {
 
 func (downloader *Downloader) SetMaxCacheDuration(duration time.Duration) {
 	downloader.options.MaxCacheDuration = duration
+}
+
+func (downloader *Downloader) Clean() (err error) {
+	options := downloader.options
+
+	if options.MaxCacheDuration == 0 {
+		return
+	}
+
+	var cacheDirContents []string
+
+	cacheDirContents, err = filepath.Glob(filepath.Join(options.CacheDir, "*"+fileExt))
+	if err != nil {
+		return
+	}
+
+	for _, filePath := range cacheDirContents {
+		var fileInfo fs.FileInfo
+
+		fmt.Println(filePath)
+
+		if fileInfo, err = os.Stat(filePath); err != nil {
+			if !os.IsNotExist(err) {
+				return
+			}
+		} else if time.Since(fileInfo.ModTime()) > options.MaxCacheDuration {
+			if err = os.RemoveAll(filePath); err != nil {
+				return
+			}
+		}
+	}
+
+	return
 }
 
 func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCache bool, err error) {
