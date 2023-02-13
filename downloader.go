@@ -113,7 +113,9 @@ func (downloader *Downloader) Clean() (err error) {
 		var fileInfo fs.FileInfo
 
 		if fileInfo, err = os.Stat(filePath); err != nil {
-			if !os.IsNotExist(err) {
+			if os.IsNotExist(err) {
+				err = nil
+			} else {
 				return
 			}
 		} else if time.Since(fileInfo.ModTime()) > options.MaxCacheDuration {
