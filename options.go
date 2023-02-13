@@ -6,5 +6,4 @@ type Options struct {
 	CacheDir               string
 	ShouldKeepCacheOnClose bool
 	MaxCacheDuration       time.Duration
-	isTempDir              bool
 }

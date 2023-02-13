@@ -3,6 +3,7 @@ package cachedPageDownloader
 import (
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -20,7 +21,8 @@ const (
 )
 
 type Downloader struct {
-	options *Options
+	options   *Options
+	isTempDir bool
 }
 
 func NewDownloader(options *Options) (downloader *Downloader, err error) {
@@ -37,7 +39,7 @@ func NewDownloader(options *Options) (downloader *Downloader, err error) {
 		if err != nil {
 			return
 		}
-		options.isTempDir = true
+		downloader.isTempDir = true
 	} else {
 		if err = os.MkdirAll(options.CacheDir, os.ModeDir); err != nil {
 			if os.IsExist(err) {
@@ -61,7 +63,12 @@ func (downloader *Downloader) Close() (err error) {
 	options := downloader.options
 
 	if !options.ShouldKeepCacheOnClose {
-		if options.isTempDir {
+		currentMutex := mutex.Get("C:" + options.CacheDir)
+
+		defer currentMutex.Unlock()
+		currentMutex.Lock()
+
+		if downloader.isTempDir {
 			if err = os.RemoveAll(options.CacheDir); err != nil {
 				return
 			}
@@ -103,6 +110,11 @@ func (downloader *Downloader) Clean() (err error) {
 		return
 	}
 
+	currentMutex := mutex.Get("C:" + options.CacheDir)
+
+	defer currentMutex.Unlock()
+	currentMutex.Lock()
+
 	var cacheDirContents []string
 
 	cacheDirContents, err = filepath.Glob(filepath.Join(options.CacheDir, "*"+fileExt))
@@ -143,7 +155,8 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 	fileName := fileHash + fileExt
 	filePath := filepath.Join(options.CacheDir, fileName)
 
-	currentMutex := mutex.Get(rawURL)
+	currentMutexKey := fmt.Sprintf("D:%s:%s", downloader.options.CacheDir, rawURL)
+	currentMutex := mutex.Get(currentMutexKey)
 
 	defer currentMutex.Unlock()
 	currentMutex.Lock()
