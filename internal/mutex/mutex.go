@@ -1,6 +1,7 @@
 package mutex
 
 import (
+	"math/big"
 	"sync"
 
 	hash "github.com/theTardigrade/golang-hash"
@@ -12,6 +13,7 @@ const (
 
 var (
 	collection = make([]*sync.Mutex, count)
+	countBig   = big.NewInt(count)
 )
 
 func init() {
@@ -21,7 +23,8 @@ func init() {
 }
 
 func Get(key string) *sync.Mutex {
-	index := hash.Uint64String(key) % count
+	hashedKey := hash.Uint256String(key)
+	index := hashedKey.Mod(hashedKey, countBig).Uint64()
 
 	return collection[index]
 }
