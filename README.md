@@ -2,6 +2,8 @@
 
 This package makes it easy to download &mdash; or access previously cached versions of &mdash; webpages.
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/theTardigrade/golang-cachedPageDownloader.svg)](https://pkg.go.dev/github.com/theTardigrade/golang-cachedPageDownloader) [![Go Report Card](https://goreportcard.com/badge/github.com/theTardigrade/golang-cachedPageDownloader)](https://goreportcard.com/report/github.com/theTardigrade/golang-cachedPageDownloader)
+
 ## Example
 
 ```golang
