@@ -4,8 +4,6 @@ This package makes it easy to download &mdash; or access previously cached versi
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/theTardigrade/golang-cachedPageDownloader.svg)](https://pkg.go.dev/github.com/theTardigrade/golang-cachedPageDownloader) [![Go Report Card](https://goreportcard.com/badge/github.com/theTardigrade/golang-cachedPageDownloader)](https://goreportcard.com/report/github.com/theTardigrade/golang-cachedPageDownloader)
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S6S2EIRL0)
-
 ## Example
 
 ```golang
@@ -54,3 +52,9 @@ func main() {
 	fmt.Println(isFromCache) // true
 }
 ```
+
+## Support
+
+If you use this package, or find any value in it, please consider donating:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S6S2EIRL0)
