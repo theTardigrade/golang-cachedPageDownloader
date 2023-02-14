@@ -10,8 +10,8 @@ const (
 )
 
 type Downloader struct {
-	options   *Options
-	isTempDir bool
+	options        *Options
+	isCacheDirTemp bool
 }
 
 func NewDownloader(options *Options) (downloader *Downloader, err error) {
@@ -28,14 +28,10 @@ func NewDownloader(options *Options) (downloader *Downloader, err error) {
 		if err != nil {
 			return
 		}
-		downloader.isTempDir = true
+		downloader.isCacheDirTemp = true
 	} else {
 		if err = os.MkdirAll(options.CacheDir, os.ModeDir); err != nil {
-			if os.IsExist(err) {
-				err = nil
-			} else {
-				return
-			}
+			return
 		}
 	}
 

@@ -36,22 +36,33 @@ func (downloader *Downloader) Clear() (err error) {
 	defer currentMutex.Unlock()
 	currentMutex.Lock()
 
-	if downloader.isTempDir {
+	if downloader.isCacheDirTemp {
+		err = os.RemoveAll(options.CacheDir)
+
+		return
+	}
+
+	var cacheDirContents []string
+
+	cacheDirContents, err = filepath.Glob(filepath.Join(options.CacheDir, "*"+downloaderCacheFileExt))
+	if err != nil {
+		return
+	}
+
+	for _, item := range cacheDirContents {
+		if err = os.RemoveAll(item); err != nil {
+			return
+		}
+	}
+
+	dirEntries, err := os.ReadDir(options.CacheDir)
+	if err != nil {
+		return
+	}
+
+	if len(dirEntries) == 0 {
 		if err = os.RemoveAll(options.CacheDir); err != nil {
 			return
-		}
-	} else {
-		var cacheDirContents []string
-
-		cacheDirContents, err = filepath.Glob(filepath.Join(options.CacheDir, "*"+downloaderCacheFileExt))
-		if err != nil {
-			return
-		}
-
-		for _, item := range cacheDirContents {
-			if err = os.RemoveAll(item); err != nil {
-				return
-			}
 		}
 	}
 
