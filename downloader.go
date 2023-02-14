@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	downloaderCacheFileExt = ".tmp"
+	downloaderCacheFileExt = ".cache.tmp"
 )
 
 type Downloader struct {
