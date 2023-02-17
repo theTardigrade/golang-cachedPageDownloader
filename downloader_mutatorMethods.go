@@ -62,7 +62,7 @@ func (downloader *Downloader) Clear() (err error) {
 	}
 
 	if len(dirEntries) == 0 {
-		if err = os.RemoveAll(options.CacheDir); err != nil {
+		if err = os.Remove(options.CacheDir); err != nil {
 			return
 		}
 	}
