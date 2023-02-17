@@ -229,10 +229,7 @@ func (downloader *Downloader) writeToCache(filePath string, content []byte) (err
 	}
 	defer fileWriter.Close()
 
-	fileStorage := storage{
-		SetTime: time.Now().UTC(),
-		Content: content,
-	}
+	fileStorage := newStorage(content)
 
 	content, err = json.Marshal(fileStorage)
 	if err != nil {
