@@ -3,6 +3,7 @@ package cachedPageDownloader
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
@@ -148,16 +149,11 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 func (downloader *Downloader) readFromCache(filePath string) (content []byte, found bool, err error) {
 	options := downloader.options
 
-	fileInfo, err := os.Stat(filePath)
-	if err != nil {
+	if _, err = os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			err = nil
 		}
 
-		return
-	}
-
-	if options.MaxCacheDuration != 0 && time.Since(fileInfo.ModTime()) > options.MaxCacheDuration {
 		return
 	}
 
@@ -177,7 +173,20 @@ func (downloader *Downloader) readFromCache(filePath string) (content []byte, fo
 		return
 	}
 
+	var fileStorage storage
+
+	if err = json.Unmarshal(content, &fileStorage); err != nil {
+		return
+	}
+
+	if options.MaxCacheDuration != 0 && time.Since(fileStorage.SetTime) > options.MaxCacheDuration {
+		os.Remove(filePath)
+
+		return
+	}
+
 	found = true
+	content = fileStorage.Content
 
 	return
 }
@@ -213,6 +222,16 @@ func (downloader *Downloader) writeToCache(filePath string, content []byte) (err
 		return
 	}
 	defer fileWriter.Close()
+
+	fileStorage := storage{
+		SetTime: time.Now().UTC(),
+		Content: content,
+	}
+
+	content, err = json.Marshal(fileStorage)
+	if err != nil {
+		return
+	}
 
 	if _, err = fileWriter.Write(content); err != nil {
 		return
