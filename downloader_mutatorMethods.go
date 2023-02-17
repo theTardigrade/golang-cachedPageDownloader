@@ -149,11 +149,22 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 func (downloader *Downloader) readFromCache(filePath string) (content []byte, found bool, err error) {
 	options := downloader.options
 
-	if _, err = os.Stat(filePath); err != nil {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
 		if os.IsNotExist(err) {
 			err = nil
 		}
 
+		return
+	}
+
+	defer func() {
+		if err == nil && !found {
+			os.Remove(filePath)
+		}
+	}()
+
+	if options.MaxCacheDuration != 0 && time.Since(fileInfo.ModTime()) > options.MaxCacheDuration {
 		return
 	}
 
@@ -180,8 +191,6 @@ func (downloader *Downloader) readFromCache(filePath string) (content []byte, fo
 	}
 
 	if options.MaxCacheDuration != 0 && time.Since(fileStorage.SetTime) > options.MaxCacheDuration {
-		os.Remove(filePath)
-
 		return
 	}
 
