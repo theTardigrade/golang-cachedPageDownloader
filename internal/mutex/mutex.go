@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	count = 1 << 22
+	count = 4_194_319 // first prime number after 1<<22
 )
 
 var (
