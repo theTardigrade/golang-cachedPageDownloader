@@ -22,9 +22,12 @@ func init() {
 	}
 }
 
-func Get(key string) *sync.Mutex {
+func GetLocked(key string) *sync.Mutex {
 	hashedKey := hash.Uint256String(key)
 	index := hashedKey.Mod(hashedKey, countBig).Uint64()
+	mutex := collection[index]
 
-	return collection[index]
+	mutex.Lock()
+
+	return mutex
 }

@@ -32,10 +32,9 @@ func (downloader *Downloader) Close() (err error) {
 func (downloader *Downloader) Clear() (err error) {
 	options := downloader.options
 
-	currentMutex := mutex.Get("C:" + options.CacheDir)
+	currentMutex := mutex.GetLocked("C:" + options.CacheDir)
 
 	defer currentMutex.Unlock()
-	currentMutex.Lock()
 
 	if downloader.isCacheDirTemp {
 		err = os.RemoveAll(options.CacheDir)
@@ -77,10 +76,9 @@ func (downloader *Downloader) Clean() (err error) {
 		return
 	}
 
-	currentMutex := mutex.Get("C:" + options.CacheDir)
+	currentMutex := mutex.GetLocked("C:" + options.CacheDir)
 
 	defer currentMutex.Unlock()
-	currentMutex.Lock()
 
 	var cacheDirContents []string
 
@@ -123,10 +121,9 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 	filePath := filepath.Join(options.CacheDir, fileName)
 
 	currentMutexKey := fmt.Sprintf("D:%s:%s", downloader.options.CacheDir, rawURL)
-	currentMutex := mutex.Get(currentMutexKey)
+	currentMutex := mutex.GetLocked(currentMutexKey)
 
 	defer currentMutex.Unlock()
-	currentMutex.Lock()
 
 	content, isFromCache, err = downloader.readFromCache(filePath)
 	if err != nil || isFromCache {
