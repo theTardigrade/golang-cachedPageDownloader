@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/theTardigrade/golang-cachedPageDownloader/internal/mutex"
+	"github.com/theTardigrade/golang-cachedPageDownloader/internal/storage"
+
 	hash "github.com/theTardigrade/golang-hash"
 )
 
@@ -181,18 +183,18 @@ func (downloader *Downloader) readFromCache(filePath string) (content []byte, fo
 		return
 	}
 
-	var fileStorage storage
+	var fileDatum storage.Datum
 
-	if err = json.Unmarshal(content, &fileStorage); err != nil {
+	if err = json.Unmarshal(content, &fileDatum); err != nil {
 		return
 	}
 
-	if options.MaxCacheDuration != 0 && time.Since(fileStorage.SetTime) > options.MaxCacheDuration {
+	if options.MaxCacheDuration != 0 && time.Since(fileDatum.SetTime) > options.MaxCacheDuration {
 		return
 	}
 
 	found = true
-	content = fileStorage.Content
+	content = fileDatum.Content
 
 	return
 }
@@ -229,9 +231,9 @@ func (downloader *Downloader) writeToCache(filePath string, content []byte) (err
 	}
 	defer fileWriter.Close()
 
-	fileStorage := newStorage(content)
+	fileDatum := storage.NewDatum(content)
 
-	content, err = json.Marshal(fileStorage)
+	content, err = json.Marshal(fileDatum)
 	if err != nil {
 		return
 	}

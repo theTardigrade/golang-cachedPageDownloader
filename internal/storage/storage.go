@@ -1,14 +1,14 @@
-package cachedPageDownloader
+package storage
 
 import "time"
 
-type storage struct {
+type Datum struct {
 	SetTime time.Time `json:"t"`
 	Content []byte    `json:"c"`
 }
 
-func newStorage(content []byte) *storage {
-	return &storage{
+func NewDatum(content []byte) *Datum {
+	return &Datum{
 		SetTime: time.Now().UTC(),
 		Content: content,
 	}
