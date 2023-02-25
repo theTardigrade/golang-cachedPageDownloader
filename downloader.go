@@ -9,11 +9,17 @@ const (
 	downloaderCacheFileExt = ".cache.tmp"
 )
 
+// Downloader provides methods that do the main
+// work of this package.
 type Downloader struct {
 	options        *Options
 	isCacheDirTemp bool
 }
 
+// NewDownloader returns a pointer to a newly
+// allocated Downloader struct.
+// An error will also be returned if the cache
+// directory cannot be found or created.
 func NewDownloader(options *Options) (downloader *Downloader, err error) {
 	if options == nil {
 		options = &Options{}
