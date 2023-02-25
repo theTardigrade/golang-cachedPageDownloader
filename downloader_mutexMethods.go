@@ -1,6 +1,7 @@
 package cachedPageDownloader
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -19,26 +20,19 @@ func (downloader *Downloader) mutexKeyDefaultParts() []string {
 
 func (downloader *Downloader) mutexKey(keyParts []string) string {
 	var builder strings.Builder
-	var i int
 
-	for _, part := range keyParts {
-		if i > 0 {
+	if keyPartsLen := len(keyParts); keyPartsLen > 0 {
+		builder.WriteString(keyParts[0])
+
+		for i := 1; i < keyPartsLen; i++ {
 			builder.WriteByte(mutexKeySeparator)
+			builder.WriteString(keyParts[i])
 		}
-
-		builder.WriteString(part)
-
-		i++
 	}
 
 	for _, part := range downloader.mutexKeyDefaultParts() {
-		if i > 0 {
-			builder.WriteByte(mutexKeySeparator)
-		}
-
+		builder.WriteByte(mutexKeySeparator)
 		builder.WriteString(part)
-
-		i++
 	}
 
 	return builder.String()
@@ -46,6 +40,7 @@ func (downloader *Downloader) mutexKey(keyParts []string) string {
 
 func (downloader *Downloader) mutexLocked(primaryKeyParts ...string) (currentMutex *sync.Mutex) {
 	primaryKey := downloader.mutexKey(primaryKeyParts)
+	fmt.Println("KEY", primaryKey)
 	currentMutex = mutex.GetLocked(primaryKey)
 
 	return
