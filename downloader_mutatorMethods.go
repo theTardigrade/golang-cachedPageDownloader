@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/theTardigrade/golang-cachedPageDownloader/internal/mutex"
 	"github.com/theTardigrade/golang-cachedPageDownloader/internal/storage"
 
 	hash "github.com/theTardigrade/golang-hash"
@@ -24,9 +22,9 @@ import (
 func (downloader *Downloader) Close() (err error) {
 	options := downloader.options
 
-	currentMutex, currentMutexFound := mutex.GetUniqueLocked(
-		"CL:"+options.CacheDir,
-		"C:"+options.CacheDir,
+	currentMutex, currentMutexFound := downloader.mutexUniqueLocked(
+		[]string{"CL"},
+		[]string{"C"},
 	)
 
 	if currentMutexFound {
@@ -46,7 +44,7 @@ func (downloader *Downloader) Close() (err error) {
 func (downloader *Downloader) Clear() (err error) {
 	options := downloader.options
 
-	currentMutex := mutex.GetLocked("C:" + options.CacheDir)
+	currentMutex := downloader.mutexLocked("C")
 
 	defer currentMutex.Unlock()
 
@@ -92,7 +90,7 @@ func (downloader *Downloader) Clean() (err error) {
 		return
 	}
 
-	currentMutex := mutex.GetLocked("C:" + options.CacheDir)
+	currentMutex := downloader.mutexLocked("C")
 
 	defer currentMutex.Unlock()
 
@@ -152,8 +150,7 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 	fileName := fileHash + downloaderCacheFileExt
 	filePath := filepath.Join(options.CacheDir, fileName)
 
-	currentMutexKey := fmt.Sprintf("D:%s:%s", downloader.options.CacheDir, rawURL)
-	currentMutex := mutex.GetLocked(currentMutexKey)
+	currentMutex := downloader.mutexLocked("D", rawURL)
 
 	defer currentMutex.Unlock()
 
