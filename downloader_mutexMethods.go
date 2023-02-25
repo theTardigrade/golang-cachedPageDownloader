@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	mutexKeySeparator byte = ':'
+	mutexKeySeparator byte = '|'
 )
 
 func (downloader *Downloader) mutexKeyDefaultParts() []string {
