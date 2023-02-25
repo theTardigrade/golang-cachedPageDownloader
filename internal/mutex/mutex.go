@@ -41,7 +41,7 @@ func GetLocked(key string) (mutex *sync.Mutex) {
 	return mutex
 }
 
-// GetUniqueLocked attempts to returns a mutex
+// GetUniqueLocked attempts to return a mutex
 // from the collection,
 // based on a hashed value for the given primary key,
 // after locking it.
