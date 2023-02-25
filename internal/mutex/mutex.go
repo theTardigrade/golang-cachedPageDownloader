@@ -50,25 +50,6 @@ const (
 	getUniqueLockedMaxAttempts = 1 << 11
 )
 
-func getUniqueLockedAttempt(primaryKey string, secondaryKeys ...string) (mutex *sync.Mutex, found bool) {
-	mutex = get(primaryKey)
-
-	for i := 0; i < len(secondaryKeys); i++ {
-		secondaryMutex := get(secondaryKeys[i])
-
-		if mutex == secondaryMutex {
-			mutex = nil
-			return
-		}
-	}
-
-	found = true
-
-	mutex.Lock()
-
-	return
-}
-
 // GetUniqueLocked attempts to return a mutex
 // from the collection,
 // based on a hashed value for the given primary key,
@@ -78,16 +59,53 @@ func getUniqueLockedAttempt(primaryKey string, secondaryKeys ...string) (mutex *
 // of the secondary keys, then no mutex is returned
 // or locked.
 func GetUniqueLocked(primaryKey string, secondaryKeys ...string) (mutex *sync.Mutex, found bool) {
-	mutex, found = getUniqueLockedAttempt(primaryKey, secondaryKeys...)
-	if found {
-		return
+	mutex = get(primaryKey)
+	found = true
+
+	for _, secondaryKey := range secondaryKeys {
+		secondaryMutex := get(secondaryKey)
+
+		if mutex == secondaryMutex {
+			mutex, found = nil, false
+			break
+		}
 	}
 
-	for i := 2; i <= getUniqueLockedMaxAttempts; i++ {
-		mutex, found = getUniqueLockedAttempt(primaryKey+strconv.Itoa(i), secondaryKeys...)
-		if found {
-			return
+	if !found {
+		secondaryMutexes := make([]*sync.Mutex, len(secondaryKeys))
+
+		for i, secondaryKey := range secondaryKeys {
+			secondaryMutexes[i] = get(secondaryKey)
 		}
+
+		seenMutexes := make(map[*sync.Mutex]struct{})
+
+		seenMutexes[mutex] = struct{}{}
+
+		for i := 2; i <= getUniqueLockedMaxAttempts; i++ {
+			mutex = get(primaryKey + strconv.Itoa(i))
+			if _, seen := seenMutexes[mutex]; seen {
+				continue
+			}
+			found = true
+
+			for _, secondaryMutex := range secondaryMutexes {
+				if mutex == secondaryMutex {
+					mutex, found = nil, false
+					break
+				}
+			}
+
+			if found {
+				break
+			}
+
+			seenMutexes[mutex] = struct{}{}
+		}
+	}
+
+	if found {
+		mutex.Lock()
 	}
 
 	return
