@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	downloaderCacheFileExt = ".cache.tmp"
+	downloaderCacheFileExt        = ".cache.tmp"
+	downloaderCacheDirTempPattern = "golang-cachedPageDownloader-*"
 )
 
 // Downloader provides methods that do the main
@@ -31,7 +32,7 @@ func NewDownloader(options *Options) (downloader *Downloader, err error) {
 	}
 
 	if options.CacheDir == "" {
-		options.CacheDir, err = os.MkdirTemp("", "golang-cachedPageDownloader-*")
+		options.CacheDir, err = os.MkdirTemp("", downloaderCacheDirTempPattern)
 		if err != nil {
 			return
 		}
