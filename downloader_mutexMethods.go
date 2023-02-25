@@ -12,8 +12,10 @@ const (
 )
 
 func mutexFormatKeyPart(keyPart string) string {
+	keyPart = strings.TrimSpace(keyPart)
+
 	keyPart = strings.ReplaceAll(
-		strings.TrimSpace(keyPart),
+		keyPart,
 		`\`,
 		`\\`,
 	)
