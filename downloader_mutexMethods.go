@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	mutexKeySeparator = ":"
+	mutexKeySeparator byte = ':'
 )
 
 func (downloader *Downloader) mutexKeyDefaultParts() []string {
@@ -23,7 +23,7 @@ func (downloader *Downloader) mutexKey(keyParts []string) string {
 
 	for _, part := range keyParts {
 		if i > 0 {
-			builder.WriteString(mutexKeySeparator)
+			builder.WriteByte(mutexKeySeparator)
 		}
 
 		builder.WriteString(part)
@@ -33,7 +33,7 @@ func (downloader *Downloader) mutexKey(keyParts []string) string {
 
 	for _, part := range downloader.mutexKeyDefaultParts() {
 		if i > 0 {
-			builder.WriteString(mutexKeySeparator)
+			builder.WriteByte(mutexKeySeparator)
 		}
 
 		builder.WriteString(part)
