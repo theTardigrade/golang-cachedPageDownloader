@@ -32,6 +32,10 @@ func (downloader *Downloader) mutexKeyDefaultParts() (keyParts []string) {
 		downloader.options.CacheDir,
 	}
 
+	for i, part := range keyParts {
+		keyParts[i] = mutexFormatKeyPart(part)
+	}
+
 	return
 }
 
@@ -47,9 +51,9 @@ func (downloader *Downloader) mutexKey(keyParts []string) string {
 		}
 	}
 
-	for _, part := range downloader.mutexKeyDefaultParts() {
+	for _, part := range downloader.mutexKeyDefaultPartsCached {
 		builder.WriteByte(mutexKeySeparator)
-		builder.WriteString(mutexFormatKeyPart(part))
+		builder.WriteString(part)
 	}
 
 	return builder.String()
