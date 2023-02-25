@@ -58,6 +58,9 @@ const (
 // is identical to any of the mutexes found using any
 // of the secondary keys, then no mutex is returned
 // or locked.
+// A number of other primary keys, related to the first,
+// will be attempted before the search for a unique mutex
+// is ended.
 func GetUniqueLocked(primaryKey string, secondaryKeys ...string) (mutex *sync.Mutex, found bool) {
 	mutex = get(primaryKey)
 	found = true
