@@ -11,15 +11,35 @@ const (
 	mutexKeySeparator = ":"
 )
 
+func (downloader *Downloader) mutexKeyDefaultParts() []string {
+	return []string{
+		downloader.options.CacheDir,
+	}
+}
+
 func (downloader *Downloader) mutexKey(keyParts []string) string {
 	var builder strings.Builder
+	var i int
 
 	for _, part := range keyParts {
+		if i > 0 {
+			builder.WriteString(mutexKeySeparator)
+		}
+
 		builder.WriteString(part)
-		builder.WriteString(mutexKeySeparator)
+
+		i++
 	}
 
-	builder.WriteString(downloader.options.CacheDir)
+	for _, part := range downloader.mutexKeyDefaultParts() {
+		if i > 0 {
+			builder.WriteString(mutexKeySeparator)
+		}
+
+		builder.WriteString(part)
+
+		i++
+	}
 
 	return builder.String()
 }
