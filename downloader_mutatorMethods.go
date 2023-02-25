@@ -19,6 +19,8 @@ import (
 	hash "github.com/theTardigrade/golang-hash"
 )
 
+// Close should be called whenever the Downloader is
+// no longer needed.
 func (downloader *Downloader) Close() (err error) {
 	options := downloader.options
 
@@ -31,6 +33,7 @@ func (downloader *Downloader) Close() (err error) {
 	return
 }
 
+// Clear will remove all files from the cache directory.
 func (downloader *Downloader) Clear() (err error) {
 	options := downloader.options
 
@@ -71,6 +74,8 @@ func (downloader *Downloader) Clear() (err error) {
 	return
 }
 
+// Clean will remove all files that have existed for longer than
+// the maximum duration from the cache directory.
 func (downloader *Downloader) Clean() (err error) {
 	options := downloader.options
 
@@ -102,12 +107,28 @@ func (downloader *Downloader) Clean() (err error) {
 			if err = os.RemoveAll(filePath); err != nil {
 				return
 			}
+		} else {
+			var fileDatum *storage.Datum
+
+			fileDatum, err = downloader.readCachedJSON(filePath)
+			if err != nil {
+				return
+			}
+
+			if time.Since(fileDatum.SetTime) > options.MaxCacheDuration {
+				if err = os.RemoveAll(filePath); err != nil {
+					return
+				}
+			}
 		}
 	}
 
 	return
 }
 
+// Download will retrieved an HTML page as a byte slice from the internet.
+// If the page has been downloaded previously, the function will attempt
+// to retrieve it from the cache, reducing the number of network requests.
 func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCache bool, err error) {
 	options := downloader.options
 
@@ -167,7 +188,24 @@ func (downloader *Downloader) readFromCache(filePath string) (content []byte, fo
 		return
 	}
 
-	if content, err = os.ReadFile(filePath); err != nil {
+	fileDatum, err := downloader.readCachedJSON(filePath)
+	if err != nil {
+		return
+	}
+
+	if options.MaxCacheDuration != 0 && time.Since(fileDatum.SetTime) > options.MaxCacheDuration {
+		return
+	}
+
+	content = fileDatum.Content
+	found = true
+
+	return
+}
+
+func (downloader *Downloader) readCachedJSON(filePath string) (fileDatum *storage.Datum, err error) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
 		return
 	}
 
@@ -183,18 +221,11 @@ func (downloader *Downloader) readFromCache(filePath string) (content []byte, fo
 		return
 	}
 
-	var fileDatum storage.Datum
+	fileDatum = new(storage.Datum)
 
-	if err = json.Unmarshal(content, &fileDatum); err != nil {
+	if err = json.Unmarshal(content, fileDatum); err != nil {
 		return
 	}
-
-	if options.MaxCacheDuration != 0 && time.Since(fileDatum.SetTime) > options.MaxCacheDuration {
-		return
-	}
-
-	found = true
-	content = fileDatum.Content
 
 	return
 }
