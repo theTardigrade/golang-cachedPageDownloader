@@ -24,6 +24,10 @@ import (
 func (downloader *Downloader) Close() (err error) {
 	options := downloader.options
 
+	currentMutex := mutex.GetLocked("CL:" + options.CacheDir)
+
+	defer currentMutex.Unlock()
+
 	if !options.ShouldKeepCacheOnClose {
 		if err = downloader.Clear(); err != nil {
 			return
