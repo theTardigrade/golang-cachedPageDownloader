@@ -126,8 +126,8 @@ func (downloader *Downloader) Clean() (err error) {
 	return
 }
 
-// Download will retrieved an HTML page as a byte slice from the internet.
-// If the page has been downloaded previously, the function will attempt
+// Download will retrieve an HTML page as a byte slice from the internet.
+// If the webpage has been downloaded previously, the function will attempt
 // to retrieve it from the cache, reducing the number of network requests.
 func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCache bool, err error) {
 	options := downloader.options
