@@ -2,6 +2,7 @@ package mutex
 
 import (
 	"math/big"
+	"strconv"
 	"sync"
 
 	hash "github.com/theTardigrade/golang-hash"
@@ -45,6 +46,29 @@ func GetLocked(key string) (mutex *sync.Mutex) {
 	return mutex
 }
 
+const (
+	getUniqueLockedMaxAttempts = 1 << 11
+)
+
+func getUniqueLockedAttempt(primaryKey string, secondaryKeys ...string) (mutex *sync.Mutex, found bool) {
+	mutex = get(primaryKey)
+
+	for i := 0; i < len(secondaryKeys); i++ {
+		secondaryMutex := get(secondaryKeys[i])
+
+		if mutex == secondaryMutex {
+			mutex = nil
+			return
+		}
+	}
+
+	found = true
+
+	mutex.Lock()
+
+	return
+}
+
 // GetUniqueLocked attempts to return a mutex
 // from the collection,
 // based on a hashed value for the given primary key,
@@ -54,19 +78,17 @@ func GetLocked(key string) (mutex *sync.Mutex) {
 // of the secondary keys, then no mutex is returned
 // or locked.
 func GetUniqueLocked(primaryKey string, secondaryKeys ...string) (mutex *sync.Mutex, found bool) {
-	mutex = get(primaryKey)
+	mutex, found = getUniqueLockedAttempt(primaryKey, secondaryKeys...)
+	if found {
+		return
+	}
 
-	for i := 0; i < len(secondaryKeys); i++ {
-		secondaryMutex := get(secondaryKeys[i])
-
-		if mutex == secondaryMutex {
+	for i := 2; i <= getUniqueLockedMaxAttempts; i++ {
+		mutex, found = getUniqueLockedAttempt(primaryKey+strconv.Itoa(i), secondaryKeys...)
+		if found {
 			return
 		}
 	}
-
-	found = true
-
-	mutex.Lock()
 
 	return
 }
