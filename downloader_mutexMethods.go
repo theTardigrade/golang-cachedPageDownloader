@@ -14,15 +14,12 @@ const (
 func (downloader *Downloader) mutexKey(keyParts []string) string {
 	var builder strings.Builder
 
-	keyParts = append(keyParts, downloader.options.CacheDir)
-
-	for i, part := range keyParts {
-		if i > 0 {
-			builder.WriteString(mutexKeySeparator)
-		}
-
+	for _, part := range keyParts {
 		builder.WriteString(part)
+		builder.WriteString(mutexKeySeparator)
 	}
+
+	builder.WriteString(downloader.options.CacheDir)
 
 	return builder.String()
 }
