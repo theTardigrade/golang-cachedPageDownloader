@@ -22,10 +22,14 @@ func init() {
 	}
 }
 
-func get(key string) (mutex *sync.Mutex) {
+func index(key string) uint64 {
 	hashedKey := hash.Uint256String(key)
-	index := hashedKey.Mod(hashedKey, countBig).Uint64()
-	mutex = collection[index]
+
+	return hashedKey.Mod(hashedKey, countBig).Uint64()
+}
+
+func get(key string) (mutex *sync.Mutex) {
+	mutex = collection[index(key)]
 
 	return mutex
 }
@@ -53,9 +57,9 @@ func GetUniqueLocked(primaryKey string, secondaryKeys ...string) (mutex *sync.Mu
 	mutex = get(primaryKey)
 
 	for i := 0; i < len(secondaryKeys); i++ {
-		mutex2 := get(secondaryKeys[i])
+		secondaryMutex := get(secondaryKeys[i])
 
-		if mutex == mutex2 {
+		if mutex == secondaryMutex {
 			return
 		}
 	}
