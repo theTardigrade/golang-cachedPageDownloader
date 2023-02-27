@@ -23,17 +23,15 @@ type Downloader struct {
 // An error will also be returned if the cache
 // directory cannot be found or created.
 func NewDownloader(options *Options) (downloader *Downloader, err error) {
-	if options == nil {
-		options = &Options{}
+	downloader = &Downloader{}
+
+	if options != nil {
+		downloader.options = *options
+		options = &downloader.options
 	}
 
-	downloader = &Downloader{
-		options: *options,
-	}
-	downloaderOptions := &downloader.options
-
-	if downloaderOptions.CacheDir == "" {
-		downloaderOptions.CacheDir, err = os.MkdirTemp("", downloaderCacheDirTempPattern)
+	if options.CacheDir == "" {
+		options.CacheDir, err = os.MkdirTemp("", downloaderCacheDirTempPattern)
 		if err != nil {
 			return
 		}
@@ -44,8 +42,8 @@ func NewDownloader(options *Options) (downloader *Downloader, err error) {
 		}
 	}
 
-	if !filepath.IsAbs(downloaderOptions.CacheDir) {
-		if downloaderOptions.CacheDir, err = filepath.Abs(downloaderOptions.CacheDir); err != nil {
+	if !filepath.IsAbs(options.CacheDir) {
+		if options.CacheDir, err = filepath.Abs(options.CacheDir); err != nil {
 			return
 		}
 	}
