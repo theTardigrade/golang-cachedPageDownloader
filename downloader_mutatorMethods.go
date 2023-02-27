@@ -20,12 +20,12 @@ import (
 func (downloader *Downloader) Close() (err error) {
 	options := downloader.options
 
-	currentMutex, currentMutexFound := downloader.mutexLockedIfUnique(
+	mutex, mutexFound := downloader.mutexGetLockedIfUnique(
 		[]string{"CL"},
 		[]string{"C"},
 	)
-	if currentMutexFound {
-		defer currentMutex.Unlock()
+	if mutexFound {
+		defer mutex.Unlock()
 	}
 
 	if !options.ShouldKeepCacheOnClose {
@@ -41,8 +41,8 @@ func (downloader *Downloader) Close() (err error) {
 func (downloader *Downloader) Clear() (err error) {
 	options := downloader.options
 
-	currentMutex := downloader.mutexLocked("C")
-	defer currentMutex.Unlock()
+	mutex := downloader.mutexGetLocked("C")
+	defer mutex.Unlock()
 
 	if downloader.isCacheDirTemp {
 		err = os.RemoveAll(options.CacheDir)
@@ -86,8 +86,8 @@ func (downloader *Downloader) Clean() (err error) {
 		return
 	}
 
-	currentMutex := downloader.mutexLocked("C")
-	defer currentMutex.Unlock()
+	mutex := downloader.mutexGetLocked("C")
+	defer mutex.Unlock()
 
 	var cacheDirContents []string
 
@@ -145,8 +145,8 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 	fileName := fileHash + downloaderCacheFileExt
 	filePath := filepath.Join(options.CacheDir, fileName)
 
-	currentMutex := downloader.mutexLocked("D", rawURL)
-	defer currentMutex.Unlock()
+	mutex := downloader.mutexGetLocked("D", rawURL)
+	defer mutex.Unlock()
 
 	content, isFromCache, err = downloader.readFromCache(filePath)
 	if err != nil || isFromCache {

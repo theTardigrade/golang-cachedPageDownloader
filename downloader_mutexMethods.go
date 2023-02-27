@@ -67,14 +67,14 @@ func (downloader *Downloader) mutexNamespace(namespaceParts []string) string {
 	return builder.String()
 }
 
-func (downloader *Downloader) mutexLocked(namespaceParts ...string) (currentMutex *namespacedMutex.MutexWrapper) {
+func (downloader *Downloader) mutexGetLocked(namespaceParts ...string) (currentMutex *namespacedMutex.MutexWrapper) {
 	namespace := downloader.mutexNamespace(namespaceParts)
 	currentMutex = mutexCollection.GetLocked(false, namespace)
 
 	return
 }
 
-func (downloader *Downloader) mutexLockedIfUnique(
+func (downloader *Downloader) mutexGetLockedIfUnique(
 	namespaceParts []string,
 	comparisonNamespaceParts ...[]string,
 ) (currentMutex *namespacedMutex.MutexWrapper, found bool) {
