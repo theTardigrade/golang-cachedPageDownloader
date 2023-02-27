@@ -2,93 +2,98 @@ package cachedPageDownloader
 
 import (
 	"strings"
-	"sync"
 
-	"github.com/theTardigrade/golang-cachedPageDownloader/internal/mutex"
+	namespacedMutex "github.com/theTardigrade/golang-namespacedMutex"
 )
 
 const (
-	mutexKeySeparator byte = '|'
+	mutexNamespaceSeparator byte = '|'
 )
 
-func mutexFormatKeyPart(keyPart string) string {
-	keyPart = strings.TrimSpace(keyPart)
+var (
+	mutexCollection = namespacedMutex.New(&namespacedMutex.Options{
+		BucketCount:           4_194_304,
+		MaxUniqueAttemptCount: 1 << 14,
+	})
+)
 
-	keyPart = strings.ReplaceAll(
-		keyPart,
+func mutexFormatNamespacePart(namespacePart string) string {
+	namespacePart = strings.TrimSpace(namespacePart)
+
+	namespacePart = strings.ReplaceAll(
+		namespacePart,
 		`\`,
 		`\\`,
 	)
 
-	keyPart = strings.ReplaceAll(
-		keyPart,
-		string(mutexKeySeparator),
-		`\`+string(mutexKeySeparator),
+	namespacePart = strings.ReplaceAll(
+		namespacePart,
+		string(mutexNamespaceSeparator),
+		`\`+string(mutexNamespaceSeparator),
 	)
 
-	return keyPart
+	return namespacePart
 }
 
-func (downloader *Downloader) mutexKeyDefaultParts() (keyParts []string) {
-	keyParts = []string{
+func (downloader *Downloader) mutexNamespaceDefaultParts() (namespaceParts []string) {
+	namespaceParts = []string{
 		downloader.options.CacheDir,
 	}
 
-	for i, part := range keyParts {
-		keyParts[i] = mutexFormatKeyPart(part)
+	for i, part := range namespaceParts {
+		namespaceParts[i] = mutexFormatNamespacePart(part)
 	}
 
 	return
 }
 
-func (downloader *Downloader) mutexKey(keyParts []string) string {
+func (downloader *Downloader) mutexNamespace(namespaceParts []string) string {
 	var builder strings.Builder
 
-	if keyPartsLen := len(keyParts); keyPartsLen > 0 {
-		builder.WriteString(mutexFormatKeyPart(keyParts[0]))
+	if namespacePartsLen := len(namespaceParts); namespacePartsLen > 0 {
+		builder.WriteString(mutexFormatNamespacePart(namespaceParts[0]))
 
-		for i := 1; i < keyPartsLen; i++ {
-			builder.WriteByte(mutexKeySeparator)
-			builder.WriteString(mutexFormatKeyPart(keyParts[i]))
+		for i := 1; i < namespacePartsLen; i++ {
+			builder.WriteByte(mutexNamespaceSeparator)
+			builder.WriteString(mutexFormatNamespacePart(namespaceParts[i]))
 		}
 	}
 
-	for _, part := range downloader.mutexKeyDefaultPartsCached {
-		builder.WriteByte(mutexKeySeparator)
+	for _, part := range downloader.mutexNamespaceDefaultPartsCached {
+		builder.WriteByte(mutexNamespaceSeparator)
 		builder.WriteString(part)
 	}
 
 	return builder.String()
 }
 
-func (downloader *Downloader) mutexLocked(primaryKeyParts ...string) (currentMutex *sync.Mutex) {
-	primaryKey := downloader.mutexKey(primaryKeyParts)
-	currentMutex = mutex.GetLocked(primaryKey)
+func (downloader *Downloader) mutexLocked(namespaceParts ...string) (currentMutex *namespacedMutex.MutexWrapper) {
+	namespace := downloader.mutexNamespace(namespaceParts)
+	currentMutex = mutexCollection.GetLocked(false, namespace)
 
 	return
-
 }
 
-func (downloader *Downloader) mutexUniqueLocked(
-	primaryKeyParts []string,
-	secondaryKeyParts ...[]string,
-) (currentMutex *sync.Mutex, found bool) {
-	primaryKey := downloader.mutexKey(primaryKeyParts)
+func (downloader *Downloader) mutexLockedIfUnique(
+	namespaceParts []string,
+	comparisonNamespaceParts ...[]string,
+) (currentMutex *namespacedMutex.MutexWrapper, found bool) {
+	namespace := downloader.mutexNamespace(namespaceParts)
 
-	if len(secondaryKeyParts) == 0 {
-		currentMutex = mutex.GetLocked(primaryKey)
+	if len(comparisonNamespaceParts) == 0 {
+		currentMutex = mutexCollection.GetLocked(false, namespace)
 		found = true
 
 		return
 	}
 
-	secondaryKeys := make([]string, len(secondaryKeyParts))
+	comparisonNamespaces := make([]string, len(comparisonNamespaceParts))
 
-	for i, parts := range secondaryKeyParts {
-		secondaryKeys[i] = downloader.mutexKey(parts)
+	for i, parts := range comparisonNamespaceParts {
+		comparisonNamespaces[i] = downloader.mutexNamespace(parts)
 	}
 
-	currentMutex, found = mutex.GetUniqueLocked(primaryKey, secondaryKeys...)
+	currentMutex, found = mutexCollection.GetLockedIfUnique(false, namespace, comparisonNamespaces...)
 
 	return
 }

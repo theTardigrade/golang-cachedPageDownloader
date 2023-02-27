@@ -13,9 +13,9 @@ const (
 // Downloader provides methods that do the main
 // work of this package.
 type Downloader struct {
-	options                    *Options
-	isCacheDirTemp             bool
-	mutexKeyDefaultPartsCached []string
+	options                          *Options
+	isCacheDirTemp                   bool
+	mutexNamespaceDefaultPartsCached []string
 }
 
 // NewDownloader returns a pointer to a newly
@@ -49,7 +49,7 @@ func NewDownloader(options *Options) (downloader *Downloader, err error) {
 		}
 	}
 
-	downloader.mutexKeyDefaultPartsCached = downloader.mutexKeyDefaultParts()
+	downloader.mutexNamespaceDefaultPartsCached = downloader.mutexNamespaceDefaultParts()
 
 	return
 }

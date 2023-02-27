@@ -22,11 +22,10 @@ import (
 func (downloader *Downloader) Close() (err error) {
 	options := downloader.options
 
-	currentMutex, currentMutexFound := downloader.mutexUniqueLocked(
+	currentMutex, currentMutexFound := downloader.mutexLockedIfUnique(
 		[]string{"CL"},
 		[]string{"C"},
 	)
-
 	if currentMutexFound {
 		defer currentMutex.Unlock()
 	}
@@ -45,7 +44,6 @@ func (downloader *Downloader) Clear() (err error) {
 	options := downloader.options
 
 	currentMutex := downloader.mutexLocked("C")
-
 	defer currentMutex.Unlock()
 
 	if downloader.isCacheDirTemp {
@@ -91,7 +89,6 @@ func (downloader *Downloader) Clean() (err error) {
 	}
 
 	currentMutex := downloader.mutexLocked("C")
-
 	defer currentMutex.Unlock()
 
 	var cacheDirContents []string
