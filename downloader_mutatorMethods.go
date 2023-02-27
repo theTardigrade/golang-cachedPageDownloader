@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/theTardigrade/golang-cachedPageDownloader/internal/storage"
-
 	hash "github.com/theTardigrade/golang-hash"
 )
 
@@ -112,7 +110,7 @@ func (downloader *Downloader) Clean() (err error) {
 				return
 			}
 		} else {
-			var fileDatum *storage.Datum
+			var fileDatum *storageDatum
 
 			fileDatum, err = downloader.readCachedJSON(filePath)
 			if err != nil {
@@ -205,7 +203,7 @@ func (downloader *Downloader) readFromCache(filePath string) (content []byte, fo
 	return
 }
 
-func (downloader *Downloader) readCachedJSON(filePath string) (fileDatum *storage.Datum, err error) {
+func (downloader *Downloader) readCachedJSON(filePath string) (fileDatum *storageDatum, err error) {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return
@@ -223,7 +221,7 @@ func (downloader *Downloader) readCachedJSON(filePath string) (fileDatum *storag
 		return
 	}
 
-	fileDatum = new(storage.Datum)
+	fileDatum = new(storageDatum)
 
 	if err = json.Unmarshal(content, fileDatum); err != nil {
 		return
@@ -264,7 +262,7 @@ func (downloader *Downloader) writeToCache(filePath string, content []byte) (err
 	}
 	defer fileWriter.Close()
 
-	fileDatum := storage.NewDatum(content)
+	fileDatum := newStorageDatum(content)
 
 	content, err = json.Marshal(fileDatum)
 	if err != nil {
