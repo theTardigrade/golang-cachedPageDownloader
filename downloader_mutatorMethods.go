@@ -148,7 +148,6 @@ func (downloader *Downloader) Download(rawURL string) (content []byte, isFromCac
 	filePath := filepath.Join(options.CacheDir, fileName)
 
 	currentMutex := downloader.mutexLocked("D", rawURL)
-
 	defer currentMutex.Unlock()
 
 	content, isFromCache, err = downloader.readFromCache(filePath)

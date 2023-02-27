@@ -13,7 +13,7 @@ const (
 // Downloader provides methods that do the main
 // work of this package.
 type Downloader struct {
-	options                          *Options
+	options                          Options
 	isCacheDirTemp                   bool
 	mutexNamespaceDefaultPartsCached []string
 }
@@ -28,11 +28,12 @@ func NewDownloader(options *Options) (downloader *Downloader, err error) {
 	}
 
 	downloader = &Downloader{
-		options: options,
+		options: *options,
 	}
+	downloaderOptions := &downloader.options
 
-	if options.CacheDir == "" {
-		options.CacheDir, err = os.MkdirTemp("", downloaderCacheDirTempPattern)
+	if downloaderOptions.CacheDir == "" {
+		downloaderOptions.CacheDir, err = os.MkdirTemp("", downloaderCacheDirTempPattern)
 		if err != nil {
 			return
 		}
@@ -43,8 +44,8 @@ func NewDownloader(options *Options) (downloader *Downloader, err error) {
 		}
 	}
 
-	if !filepath.IsAbs(options.CacheDir) {
-		if options.CacheDir, err = filepath.Abs(options.CacheDir); err != nil {
+	if !filepath.IsAbs(downloaderOptions.CacheDir) {
+		if downloaderOptions.CacheDir, err = filepath.Abs(downloaderOptions.CacheDir); err != nil {
 			return
 		}
 	}
