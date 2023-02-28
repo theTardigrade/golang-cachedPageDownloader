@@ -1,6 +1,6 @@
 github.com/theTardigrade/golang-hash v1.4.3 h1:kpvNTJPdJGjf9KwfdOmUVMR5iz7WKDrdm7eXWAkdEa4=
 github.com/theTardigrade/golang-hash v1.4.3/go.mod h1:/H6EhVuFbQdVSmBiFrGDI7uyOE6u5nFv9MiOTZGM8io=
-github.com/theTardigrade/golang-namespacedMutex v1.4.3 h1:8WreTFGml1+RM0ek2nW7IwAcP2C9kRqYowliUSQ8GbQ=
-github.com/theTardigrade/golang-namespacedMutex v1.4.3/go.mod h1:zPToTX0mHLsISXCWWd4JuWnH28v9aa0/OhivsnQw6F0=
+github.com/theTardigrade/golang-namespacedMutex v1.4.5 h1:F3+7BgCqAfe7xsx+D72KYLzue1JNiWHGLD3jPGov290=
+github.com/theTardigrade/golang-namespacedMutex v1.4.5/go.mod h1:zPToTX0mHLsISXCWWd4JuWnH28v9aa0/OhivsnQw6F0=
 github.com/theTardigrade/golang-prime v1.2.2 h1:rdBVC2AuJGB4WS+GS90OWZheqBlVmE5lf4kYXejogHk=
 github.com/theTardigrade/golang-prime v1.2.2/go.mod h1:pGUg4DciSKdKURCwFLUVl6RL5JaDT+hcZSKHSO7//Ik=
