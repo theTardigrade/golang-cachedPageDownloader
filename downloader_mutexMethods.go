@@ -12,7 +12,7 @@ const (
 
 var (
 	mutexCollection = namespacedMutex.New(&namespacedMutex.Options{
-		BucketCount:           4_194_304, // first prime number after 1 << 22
+		BucketCount:           4_194_319, // first prime number after 1 << 22
 		MaxUniqueAttemptCount: 1 << 16,
 	})
 )
