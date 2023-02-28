@@ -17,22 +17,17 @@ var (
 	})
 )
 
-func mutexFormatNamespacePart(namespacePart string) string {
+func mutexWriteNamespacePart(namespacePart string, builder *strings.Builder) {
 	namespacePart = strings.TrimSpace(namespacePart)
 
-	namespacePart = strings.ReplaceAll(
-		namespacePart,
-		`\`,
-		`\\`,
-	)
+	for _, r := range namespacePart {
+		switch r {
+		case '\\', rune(mutexNamespaceSeparator):
+			builder.WriteByte('\\')
+		}
 
-	namespacePart = strings.ReplaceAll(
-		namespacePart,
-		string(mutexNamespaceSeparator),
-		`\`+string(mutexNamespaceSeparator),
-	)
-
-	return namespacePart
+		builder.WriteRune(r)
+	}
 }
 
 func (downloader *Downloader) mutexNamespaceDefaultParts() (namespaceParts []string) {
@@ -41,7 +36,11 @@ func (downloader *Downloader) mutexNamespaceDefaultParts() (namespaceParts []str
 	}
 
 	for i, part := range namespaceParts {
-		namespaceParts[i] = mutexFormatNamespacePart(part)
+		var builder strings.Builder
+
+		mutexWriteNamespacePart(part, &builder)
+
+		namespaceParts[i] = builder.String()
 	}
 
 	return
@@ -51,11 +50,11 @@ func (downloader *Downloader) mutexNamespace(namespaceParts []string) string {
 	var builder strings.Builder
 
 	if namespacePartsLen := len(namespaceParts); namespacePartsLen > 0 {
-		builder.WriteString(mutexFormatNamespacePart(namespaceParts[0]))
+		mutexWriteNamespacePart(namespaceParts[0], &builder)
 
 		for i := 1; i < namespacePartsLen; i++ {
 			builder.WriteByte(mutexNamespaceSeparator)
-			builder.WriteString(mutexFormatNamespacePart(namespaceParts[i]))
+			mutexWriteNamespacePart(namespaceParts[i], &builder)
 		}
 	}
 
